@@ -1,18 +1,18 @@
 <?php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 // Include your database connection configuration file
 require_once 'config.php';
 
 // Query to fetch data from the accordionctn table
-try {
-    $sql = "SELECT id, question, answer, definition FROM accordionctn";
-    $stmt = $pdo->query($sql);
-} catch(PDOException $e) {
-    // Handle error if connection fails
-    echo "Connection failed: " . $e->getMessage();
-    exit();
-}
-?> 
+$sql = "SELECT id, question, answer, definition FROM accordionctn";
+$result = mysqli_query($conn, $sql);
 
+// Check if there are any rows returned
+if (mysqli_num_rows($result) > 0) {
+    ?>
+	
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -25,6 +25,8 @@ try {
   <link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet" type="text/css">
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  
   <style>
   body {
     font: 400 15px/1.8 Lato, sans-serif;
@@ -37,12 +39,16 @@ try {
     color: #111;
   }
   .container {
-    padding: 200px 80px;
+    padding: 100px 80px;
 	padding-bottom: 20px; /* Adjust this value as needed */
     position: relative;
     min-height: 100vh; /* Ensure the container takes
 	font-size: 20px;
+	position=justify-content;
   }
+  .container .button(
+  position: center;
+  )
   .accordion {
     position: fixed;
     bottom: 50px; /* Adjust this value as needed to ensure it's above the footer */
@@ -217,53 +223,30 @@ try {
   </div>
 </nav>
 
-<--! TABLE -->
 <div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-20">
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th scope="col">#</th>
-                        <th scope="col">Question</th>
-                        <th scope="col">Answer</th>
-                        <th scope="col">Definition</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php
-                    require_once 'config.php'; // Include your database connection configuration
-
-                    try {
-						// Query to select data from the accordionctn table
-						$sql = "SELECT * FROM accordionctn";
-						$stmt = $pdo->query($sql);
-
-						// Check if there are rows returned
-						if ($stmt->rowCount() > 0) {
-							// Loop through each row of the result set
-							while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-								// Output each row as a table row
-								echo "<tr>";
-								echo "<th scope='row'>" . htmlspecialchars($row['id']) . "</th>";
-								echo "<td>" . htmlspecialchars($row['question']) . "</td>";
-								echo "<td>" . htmlspecialchars($row['answer']) . "</td>";
-								echo "<td>" . htmlspecialchars($row['definition']) . "</td>";
-								echo "</tr>";
-							}
-						} else {
-							// Output a message if no rows are found
-							echo "<tr><td colspan='4'>No data found</td></tr>";
-						}
-					} catch(PDOException $e) {
-						// Handle error if connection fails
-						echo "Query failed: " . $e->getMessage();
-						exit();
-					}
-                    ?>
-                </tbody>
-            </table>
-        </div>
+    <h1 class="text-center">Questions, Answers, and Definition</h1>
+    <div class="panel-group" id="accordion">
+        <?php
+        // Loop through the fetched data
+        while ($row = mysqli_fetch_assoc($result)) {
+            ?>
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    
+                        <a data-toggle="collapse" data-parent="#accordion" href="#collapse<?php echo $row['id']; ?>">
+                            <?php echo $row['question']; ?>
+                        </a>
+                </div>
+                <div id="collapse<?php echo $row['id']; ?>" class="panel-collapse collapse">
+                    <div class="panel-body">
+                        <strong>Answer:</strong> <?php echo $row['answer']; ?><br>
+                        <strong>Definition:</strong> <?php echo $row['definition']; ?>
+                    </div>
+                </div>
+            </div>
+            <?php
+        }
+        ?>
     </div>
 </div>
 
@@ -273,10 +256,17 @@ try {
 </footer>
 
 <script>
-$(document).ready(function(){
-  
-})
+
 </script>
 
 </body>
 </html>
+
+<?php
+} else {
+    echo "No data found";
+}
+
+// Close the connection
+mysqli_close($conn);
+?>
